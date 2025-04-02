@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong 2 Giocatori</title>
+    <style>
+        body { text-align: center; background: black; color: white; }
+        canvas { background: black; display: block; margin: auto; border: 2px solid white; }
+        #scoreboard { font-size: 24px; margin: 10px; }
+        #menu, #pause-menu {
+            margin: 20px;
+        }
+        .button {
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        .button:hover {
+            transform: scale(1.1);
+            background-color: #ffcc00;
+            color: black;
+        }
+        .pause-button {
+            background-color: red;
+            color: white;
+        }
+        .pause-button:hover {
+            background-color: darkred;
+        }
+        .resume-button {
+            background-color: green;
+            color: white;
+        }
+        .resume-button:hover {
+            background-color: darkgreen;
+        }
+        .reset-button {
+            background-color: red;
+            color: white;
+        }
+        .reset-button:hover {
+            background-color: darkred;
+        }
+        #pause-menu {
+            display: none;
+        }
+        #home-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: blue;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        #home-button:hover {
+            background-color: darkblue;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <a href="home page giochi html.html" id="home-button" class="button">Home Page</a>
+    
+    <div id="menu">
+        <button class="button pause-button" onclick="togglePause()">Pausa</button>
+    </div>
+    
+    <div id="pause-menu">
+        <button class="button resume-button" onclick="togglePause()">Riprendi</button>
+        <button class="button reset-button" onclick="restartGame()">Reset</button>
+    </div>
+    
+    <div id="scoreboard">Giocatore 1: 0 | Giocatore 2: 0</div>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreboard = document.getElementById("scoreboard");
+        const pauseMenu = document.getElementById("pause-menu");
+        let isPaused = false;
+        
+        function goToMainMenu() {
+            window.location.href = "index.html";
+        }
+        
+        const paddleWidth = 10, paddleHeight = 80;
+        let player1Y = (canvas.height - paddleHeight) / 2;
+        let player2Y = (canvas.height - paddleHeight) / 2;
+        let ballX = canvas.width / 2, ballY = canvas.height / 2;
+        let ballSpeedX = 4, ballSpeedY = 4;
+        const paddleSpeed = 4;
+        let player1Score = 0, player2Score = 0;
+        
+        const keys = {};
+        document.addEventListener("keydown", (e) => keys[e.key] = true);
+        document.addEventListener("keyup", (e) => keys[e.key] = false);
+        
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseMenu.style.display = isPaused ? "block" : "none";
+        }
+        
+        function restartGame() {
+            player1Score = 0;
+            player2Score = 0;
+            resetBall();
+            updateScoreboard();
+            isPaused = false;
+            pauseMenu.style.display = "none";
+        }
+        
+        function update() {
+            if (isPaused) return;
+            
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+            
+            if (ballY <= 0 || ballY >= canvas.height) ballSpeedY *= -1;
+            
+            if (ballX <= paddleWidth && ballY >= player1Y && ballY <= player1Y + paddleHeight) {
+                ballSpeedX *= -1;
+            }
+            
+            if (ballX >= canvas.width - paddleWidth && ballY >= player2Y && ballY <= player2Y + paddleHeight) {
+                ballSpeedX *= -1;
+            }
+            
+            if (ballX < 0) {
+                player2Score++;
+                resetBall();
+            }
+            
+            if (ballX > canvas.width) {
+                player1Score++;
+                resetBall();
+            }
+            
+            if (keys['w'] && player1Y > 0) player1Y -= paddleSpeed;
+            if (keys['s'] && player1Y < canvas.height - paddleHeight) player1Y += paddleSpeed;
+            if (keys['ArrowUp'] && player2Y > 0) player2Y -= paddleSpeed;
+            if (keys['ArrowDown'] && player2Y < canvas.height - paddleHeight) player2Y += paddleSpeed;
+            
+            updateScoreboard();
+        }
+        
+        function resetBall() {
+            ballX = canvas.width / 2;
+            ballY = canvas.height / 2;
+            ballSpeedX = -ballSpeedX;
+        }
+        
+        function updateScoreboard() {
+            scoreboard.innerText = `Giocatore 1: ${player1Score} | Giocatore 2: ${player2Score}`;
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, player1Y, paddleWidth, paddleHeight);
+            ctx.fillRect(canvas.width - paddleWidth, player2Y, paddleWidth, paddleHeight);
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        gameLoop();
+    </script>
+</body>
+</html>
